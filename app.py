@@ -51,7 +51,7 @@ trashButton = ttk.Button(root, text="Trash", command=showtrash)
 trashButton.grid(row=1,column=0)
 # pad each child in root 
 for child in root.winfo_children():
-    child.grid_configure(padx=2, pady=2)
+    child.grid_configure(padx=2, pady=0)
 
 showinbox()
 # run
