@@ -14,6 +14,8 @@ def setText(widget, text):
 root = tkinter.Tk()
 root.title("Mail Client")
 root.resizable(False, False)
+# declare the default font 
+DEFAULT_FONT = tkinter.font.nametofont("TkDefaultFont")
 
 # list of mail
 mailList = tkinter.Listbox(root)
@@ -26,7 +28,7 @@ label_sender.grid(row=0, column=2, sticky="w")
 frame_mailsender = tkinter.Frame(root, height=20)
 frame_mailsender.grid(row=1, column=2, sticky="we")
 frame_mailsender.grid_propagate(False)
-mailSender = tkinter.Text(frame_mailsender)
+mailSender = tkinter.Text(frame_mailsender, font=DEFAULT_FONT)
 mailSender.grid(row=0, column=0)
 setText(mailSender, "")
 
@@ -37,7 +39,7 @@ label_subject.grid(row=2, column=2, sticky="w")
 frame_mailsubject = tkinter.Frame(root, height=20)
 frame_mailsubject.grid(row=4, column=2, sticky="we")
 frame_mailsubject.grid_propagate(False)
-mailSubject = tkinter.Text(frame_mailsubject)
+mailSubject = tkinter.Text(frame_mailsubject, font=DEFAULT_FONT)
 mailSubject.grid(row=0, column=0)
 setText(mailSubject, "")
 
@@ -45,7 +47,7 @@ setText(mailSubject, "")
 label_body = tkinter.Label(root, textvariable=tkinter.StringVar(value="Body"))
 label_body.grid(row=5, column=2, sticky="w")
 # actual body box
-mailBody = tkinter.Text(root)
+mailBody = tkinter.Text(root, font=DEFAULT_FONT)
 mailBody.grid(row=6, column=2)
 setText(mailBody, "")
 
