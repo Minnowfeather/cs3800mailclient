@@ -15,7 +15,7 @@ root = tkinter.Tk()
 root.title("Mail Client")
 root.resizable(False, False)
 # declare the default font 
-DEFAULT_FONT = tkinter.font.nametofont("TkDefaultFont")
+DEFAULT_FONT = font.nametofont("TkDefaultFont")
 
 # list of mail
 mailList = tkinter.Listbox(root)
