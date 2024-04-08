@@ -93,9 +93,9 @@ def showlogin():
     popup.title("Login")
     popup.resizable(False, False)
     label_apikey = tkinter.Label(popup, text="API key:")
-    label_apikey.grid(row=0, column=0)
+    label_apikey.grid(row=0, column=1)
     entry_apikey = tkinter.Entry(popup)
-    entry_apikey.grid(row=0, column=1)
+    entry_apikey.grid(row=0, column=2)
     popup.mainloop()
     
 
