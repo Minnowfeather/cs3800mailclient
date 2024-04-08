@@ -51,7 +51,6 @@ mailBody = tkinter.Text(root, font=DEFAULT_FONT)
 mailBody.grid(row=6, column=2)
 setText(mailBody, "")
 
-
 def showinbox():
     global mailList
     mailList.delete('0','end')
@@ -80,6 +79,7 @@ def onselect(evt):
             setText(mailSubject, mail["subject"])
             setText(mailBody, mail["body"])
             return
+
 mailList.bind('<<ListboxSelect>>', onselect)
 # if you wanna pass arguments, do this
 # command=lambda: myfunction("args")
@@ -87,8 +87,21 @@ inboxButton = ttk.Button(root, text="Inbox", command=showinbox)
 inboxButton.grid(row=0,column=0)
 trashButton = ttk.Button(root, text="Trash", command=showtrash)
 trashButton.grid(row=1,column=0)
+
+def showlogin():
+    popup = tkinter.Tk()
+    popup.title("Login")
+    popup.resizable(False, False)
+    label_apikey = tkinter.Label(popup, text="API key:")
+    label_apikey.grid(row=0, column=0)
+    entry_apikey = tkinter.Entry(popup)
+    entry_apikey.grid(row=0, column=1)
+    popup.mainloop()
+    
+
+accountButton = ttk.Button(root, text="Login", command=showlogin)
 # pad each child in root 
-for child in root.winfo_children():
+for child in root.winfo_children(): 
     child.grid_configure(padx=2, pady=0)
 
 showinbox()
