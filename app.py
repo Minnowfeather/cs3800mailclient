@@ -70,6 +70,8 @@ def showtrash():
 def onselect(evt):
     global mailBodyText
     w = evt.widget
+    if len(w.curselection()) < 1:
+        return
     index = int(w.curselection()[0])
     tmpSubject = w.get(index)
     for mail in mailbackend.getInbox():
