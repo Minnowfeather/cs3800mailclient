@@ -10,6 +10,9 @@ def setText(widget, text):
     widget.insert(tkinter.END, text)
     widget.config(state=tkinter.DISABLED)
 
+# create instance of backend (this should create an SMTP conection to gmail)
+backend = mailbackend.mailbackend()
+
 # init window
 root = tkinter.Tk()
 root.title("Mail Client")
@@ -52,14 +55,13 @@ mailBody.grid(row=6, column=2)
 setText(mailBody, "")
 
 def showinbox():
-    global mailList
     mailList.delete('0','end')
     
     setText(mailSender, "")
     setText(mailSubject, "")
     setText(mailBody, "")
     i = 0
-    for mail in mailbackend.getInbox():
+    for mail in backend.getInbox():
         i = i + 1
         mailList.insert(i, mail["subject"])
 def showtrash():
@@ -67,13 +69,12 @@ def showtrash():
 
 
 def onselect(evt):
-    global mailBodyText
     w = evt.widget
     if len(w.curselection()) < 1:
         return
     index = int(w.curselection()[0])
     tmpSubject = w.get(index)
-    for mail in mailbackend.getInbox():
+    for mail in backend.getInbox():
         if mail["subject"] == tmpSubject:
             setText(mailSender, mail["sender"])
             setText(mailSubject, mail["subject"])
@@ -88,15 +89,41 @@ inboxButton.grid(row=0,column=0)
 trashButton = ttk.Button(root, text="Trash", command=showtrash)
 trashButton.grid(row=1,column=0)
 
+def login(emailaddress, apikey):
+    try:
+        backend.login(emailaddress, apikey)
+    except:
+        error_popup = tkinter.Toplevel(root)
+        error_popup.title("Login failed.")
+        error_popup.resizable(False,False)
+        error_msg = tkinter.Label(error_popup, text="Login failed. Please check your login info and try again.")
+        error_msg.grid(row=0, column=0)
+        error_dismissbutton = tkinter.Button(error_popup, text="Ok", command=error_popup.destroy)
+        error_dismissbutton.grid(row=1, column=0)
+        # padding
+        for child in error_popup.winfo_children():
+            child.grid_configure(padx=2, pady=2)
+
+
+
 def showlogin():
-    popup = tkinter.Tk()
+    popup = tkinter.Toplevel(root)
     popup.title("Login")
     popup.resizable(False, False)
+
+    label_address = tkinter.Label(popup, text="Email Address:")
+    label_address.grid(row=0, column=0)
+    entry_address = tkinter.Entry(popup)
+    entry_address.grid(row=0, column=1)
+
     label_apikey = tkinter.Label(popup, text="API key:")
-    label_apikey.grid(row=0, column=1)
+    label_apikey.grid(row=1, column=0)
     entry_apikey = tkinter.Entry(popup)
-    entry_apikey.grid(row=0, column=2)
-    popup.mainloop()
+    entry_apikey.grid(row=1, column=1)
+
+    login_sumbit = tkinter.Button(popup, text="Login", command=lambda: login(entry_address.get(), entry_apikey.get()))
+    login_sumbit.grid(row=2, column=0, columnspan=2)
+    # popup.mainloop()
     
 
 accountButton = ttk.Button(root, text="Login", command=showlogin)
