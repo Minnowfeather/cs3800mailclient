@@ -104,6 +104,53 @@ def login(emailaddress, apikey):
         for child in error_popup.winfo_children():
             child.grid_configure(padx=2, pady=2)
 
+def compose():
+    # create popup
+    composePopup = tkinter.Toplevel(root)
+    composePopup.title("Compose new email")
+    composePopup.resizable(False, False)
+
+    # recipient label
+    compose_label_recipient = tkinter.Label(composePopup, textvariable=tkinter.StringVar(value="To"))
+    compose_label_recipient.grid(row=0, column=0, sticky="w")
+    # actual sender box
+    compose_frame_mailrecipient = tkinter.Frame(composePopup, height=20)
+    compose_frame_mailrecipient.grid(row=1, column=0, sticky="we")
+    compose_frame_mailrecipient.grid_propagate(False)
+    compose_mailRecipient = tkinter.Text(compose_frame_mailrecipient, font=DEFAULT_FONT)
+    compose_mailRecipient.grid(row=0, column=0)
+    setText(compose_mailRecipient, "")
+
+    # subject label
+    compose_label_subject = tkinter.Label(composePopup, textvariable=tkinter.StringVar(value="Subject"))
+    compose_label_subject.grid(row=2, column=0, sticky="w")
+    # actual subject box
+    compose_frame_mailsubject = tkinter.Frame(composePopup, height=20)
+    compose_frame_mailsubject.grid(row=3, column=0, sticky="we")
+    compose_frame_mailsubject.grid_propagate(False)
+    compose_mailSubject = tkinter.Text(compose_frame_mailsubject, font=DEFAULT_FONT)
+    compose_mailSubject.grid(row=0, column=0)
+
+    # body label
+    compose_label_body = tkinter.Label(composePopup, textvariable=tkinter.StringVar(value="Body"))
+    compose_label_body.grid(row=4, column=0, sticky="w")
+    # actual body box
+    compose_mailBody = tkinter.Text(composePopup, font=DEFAULT_FONT)
+    compose_mailBody.grid(row=5, column=0)
+
+    compose_mailRecipient.config(state=tkinter.NORMAL)
+    compose_mailSubject.config(state=tkinter.NORMAL)
+    compose_mailBody.config(state=tkinter.NORMAL)
+
+    send_button = ttk.Button(composePopup, text="Send", command=lambda: [sendMail(compose_mailRecipient.get('1.0', tkinter.END), compose_mailSubject.get('1.0', tkinter.END), compose_mailBody.get('1.0', tkinter.END)), composePopup.destroy()])
+    send_button.grid(row=6, column=0, sticky="e")
+
+    # pad each child in root 
+    for child in composePopup.winfo_children(): 
+        child.grid_configure(padx=2, pady=0)
+
+def sendMail(recipient, subject, body):
+    backend.sendMail(recipient=recipient, subject=subject, body=body)
 
 
 def showlogin():
@@ -126,11 +173,16 @@ def showlogin():
     # popup.mainloop()
     
 
-accountButton = ttk.Button(root, text="Login", command=showlogin)
+# accountButton = ttk.Button(root, text="Login", command=showlogin)
+
+composeButton = ttk.Button(root, text="Compose", command=compose)
 # pad each child in root 
 for child in root.winfo_children(): 
     child.grid_configure(padx=2, pady=0)
 
 showinbox()
+
+passwordfile = open("apppass.txt")
+backend.login("matthewparedes2k3@gmail.com", password=passwordfile.read())
 # run
 root.mainloop()
