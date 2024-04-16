@@ -86,8 +86,8 @@ mailList.bind('<<ListboxSelect>>', onselect)
 # command=lambda: myfunction("args")
 inboxButton = ttk.Button(root, text="Inbox", command=showinbox)
 inboxButton.grid(row=0,column=0)
-trashButton = ttk.Button(root, text="Trash", command=showtrash)
-trashButton.grid(row=1,column=0)
+# trashButton = ttk.Button(root, text="Trash", command=showtrash)
+# trashButton.grid(row=1,column=0)
 
 def login(emailaddress, apikey):
     try:
@@ -176,6 +176,7 @@ def showlogin():
 # accountButton = ttk.Button(root, text="Login", command=showlogin)
 
 composeButton = ttk.Button(root, text="Compose", command=compose)
+composeButton.grid(column=0, row=2, sticky="s")
 # pad each child in root 
 for child in root.winfo_children(): 
     child.grid_configure(padx=2, pady=0)
