@@ -89,9 +89,10 @@ inboxButton.grid(row=0,column=0)
 # trashButton = ttk.Button(root, text="Trash", command=showtrash)
 # trashButton.grid(row=1,column=0)
 
-def login(emailaddress, apikey):
+def login(sourcepopup : tkinter.Toplevel, emailaddress, apikey):
     try:
         backend.login(emailaddress, apikey)
+        sourcepopup.destroy()
     except:
         error_popup = tkinter.Toplevel(root)
         error_popup.title("Login failed.")
@@ -102,6 +103,17 @@ def login(emailaddress, apikey):
         error_dismissbutton.grid(row=1, column=0)
         # padding
         for child in error_popup.winfo_children():
+            child.grid_configure(padx=2, pady=2)
+    else:
+        success_popup = tkinter.Toplevel(root)
+        success_popup.title("Login success.")
+        success_popup.resizable(False,False)
+        success_msg = tkinter.Label(success_popup, text="Success! You are now logged in.")
+        success_msg.grid(row=0, column=0) # TODO: fix this
+        success_dismissbutton = tkinter.Button(success_popup, text="Ok", command=success_popup.destroy)
+        success_dismissbutton.grid(row=1, column=0)
+        # padding
+        for child in success_popup.winfo_children():
             child.grid_configure(padx=2, pady=2)
 
 def compose():
@@ -168,12 +180,12 @@ def showlogin():
     entry_apikey = tkinter.Entry(popup)
     entry_apikey.grid(row=1, column=1)
 
-    login_sumbit = tkinter.Button(popup, text="Login", command=lambda: login(entry_address.get(), entry_apikey.get()))
+    login_sumbit = tkinter.Button(popup, text="Login", command=lambda: login(popup, entry_address.get(), entry_apikey.get()))
     login_sumbit.grid(row=2, column=0, columnspan=2)
     # popup.mainloop()
     
 
-# accountButton = ttk.Button(root, text="Login", command=showlogin)
+accountButton = ttk.Button(root, text="Login", command=showlogin)
 
 composeButton = ttk.Button(root, text="Compose", command=compose)
 composeButton.grid(column=0, row=2, sticky="s")
@@ -184,6 +196,6 @@ for child in root.winfo_children():
 showinbox()
 
 passwordfile = open("apppass.txt")
-backend.login("matthewparedes2k3@gmail.com", password=passwordfile.read())
+#backend.login("matthewparedes2k3@gmail.com", password=passwordfile.read())
 # run
 root.mainloop()

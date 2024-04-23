@@ -17,11 +17,8 @@ class mailbackend:
     def login(self, email, password):
         # login with given credentials
         # raise smtplib exception if credentials don't work
-        try:
-            self._email = email
-            self._server.login(self._email, password)
-        except smtplib.SMTPAuthenticationError:
-            print("waow")
+        self._email = email
+        self._server.login(self._email, password)
     
     def sendMail(self, recipient, subject, body, attachment=None):
         # Header
