@@ -10,6 +10,9 @@ def setText(widget, text):
     widget.insert(tkinter.END, text)
     widget.config(state=tkinter.DISABLED)
 
+
+logged_in = False
+
 # create instance of backend (this should create an SMTP conection to gmail)
 backend = mailbackend.mailbackend()
 
@@ -55,6 +58,8 @@ mailBody.grid(row=6, column=2)
 setText(mailBody, "")
 
 def showinbox():
+    if not logged_in:
+        return
     mailList.delete('0','end')
     
     setText(mailSender, "")
@@ -90,6 +95,7 @@ inboxButton.grid(row=0,column=0)
 # trashButton.grid(row=1,column=0)
 
 def login(sourcepopup : tkinter.Toplevel, emailaddress, apikey):
+    global logged_in
     try:
         backend.login(emailaddress, apikey)
         sourcepopup.destroy()
@@ -105,11 +111,12 @@ def login(sourcepopup : tkinter.Toplevel, emailaddress, apikey):
         for child in error_popup.winfo_children():
             child.grid_configure(padx=2, pady=2)
     else:
+        logged_in = True
         success_popup = tkinter.Toplevel(root)
         success_popup.title("Login success.")
         success_popup.resizable(False,False)
         success_msg = tkinter.Label(success_popup, text="Success! You are now logged in.")
-        success_msg.grid(row=0, column=0) # TODO: fix this
+        success_msg.grid(row=0, column=0)
         success_dismissbutton = tkinter.Button(success_popup, text="Ok", command=success_popup.destroy)
         success_dismissbutton.grid(row=1, column=0)
         # padding
@@ -117,6 +124,18 @@ def login(sourcepopup : tkinter.Toplevel, emailaddress, apikey):
             child.grid_configure(padx=2, pady=2)
 
 def compose():
+    if not logged_in:
+        error_popup = tkinter.Toplevel(root)
+        error_popup.title("Error.")
+        error_popup.resizable(False,False)
+        error_msg = tkinter.Label(error_popup, text="You must login before you can send a message.")
+        error_msg.grid(row=0, column=0)
+        error_dismissbutton = tkinter.Button(error_popup, text="Ok", command=error_popup.destroy)
+        error_dismissbutton.grid(row=1, column=0)
+        # padding
+        for child in error_popup.winfo_children():
+            child.grid_configure(padx=2, pady=2)
+        return
     # create popup
     composePopup = tkinter.Toplevel(root)
     composePopup.title("Compose new email")
@@ -195,7 +214,5 @@ for child in root.winfo_children():
 
 showinbox()
 
-passwordfile = open("apppass.txt")
-#backend.login("matthewparedes2k3@gmail.com", password=passwordfile.read())
 # run
 root.mainloop()
