@@ -194,12 +194,12 @@ def showlogin():
     entry_address = tkinter.Entry(popup)
     entry_address.grid(row=0, column=1)
 
-    label_apikey = tkinter.Label(popup, text="API key:")
-    label_apikey.grid(row=1, column=0)
-    entry_apikey = tkinter.Entry(popup)
-    entry_apikey.grid(row=1, column=1)
+    label_password = tkinter.Label(popup, text="Password:")
+    label_password.grid(row=1, column=0)
+    entry_password = tkinter.Entry(popup, show="*")
+    entry_password.grid(row=1, column=1)
 
-    login_sumbit = tkinter.Button(popup, text="Login", command=lambda: login(popup, entry_address.get(), entry_apikey.get()))
+    login_sumbit = tkinter.Button(popup, text="Login", command=lambda: login(popup, entry_address.get(), entry_password.get()))
     login_sumbit.grid(row=2, column=0, columnspan=2)
     # popup.mainloop()
     
