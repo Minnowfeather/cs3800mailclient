@@ -94,47 +94,42 @@ inboxButton.grid(row=0,column=0)
 # trashButton = ttk.Button(root, text="Trash", command=showtrash)
 # trashButton.grid(row=1,column=0)
 
+
+def makepopup(title : str, body : str, dismisstext : str = "Ok"):
+    popup = tkinter.Toplevel(root)
+    popup.title(title)
+    popup.resizable(False,False)
+    popup_msg = tkinter.Label(popup, text=body)
+    popup_msg.grid(row=0, column=0)
+    popup_dismiss = tkinter.Button(popup, text=dismisstext, command=popup.destroy)
+    popup_dismiss.grid(row=1, column=0)
+    # padding
+    for child in popup.winfo_children():
+        child.grid_configure(padx=2, pady=2)
+
+def logout():
+    global logged_in
+    backend.logout()
+    logged_in = False
+    makepopup("Logout success", "Succesfully logged out.")
+    accountButton.config(text="Login", command=showlogin)
+
+
 def login(sourcepopup : tkinter.Toplevel, emailaddress, apikey):
     global logged_in
     try:
         backend.login(emailaddress, apikey)
         sourcepopup.destroy()
     except:
-        error_popup = tkinter.Toplevel(root)
-        error_popup.title("Login failed.")
-        error_popup.resizable(False,False)
-        error_msg = tkinter.Label(error_popup, text="Login failed. Please check your login info and try again.")
-        error_msg.grid(row=0, column=0)
-        error_dismissbutton = tkinter.Button(error_popup, text="Ok", command=error_popup.destroy)
-        error_dismissbutton.grid(row=1, column=0)
-        # padding
-        for child in error_popup.winfo_children():
-            child.grid_configure(padx=2, pady=2)
+        makepopup("Login failed", "Login failed. Please check your login info and try again.")
     else:
         logged_in = True
-        success_popup = tkinter.Toplevel(root)
-        success_popup.title("Login success.")
-        success_popup.resizable(False,False)
-        success_msg = tkinter.Label(success_popup, text="Success! You are now logged in.")
-        success_msg.grid(row=0, column=0)
-        success_dismissbutton = tkinter.Button(success_popup, text="Ok", command=success_popup.destroy)
-        success_dismissbutton.grid(row=1, column=0)
-        # padding
-        for child in success_popup.winfo_children():
-            child.grid_configure(padx=2, pady=2)
+        makepopup("Login success", "Success. You are now logged in")
+        accountButton.config(text="Logout", command=logout)
 
 def compose():
     if not logged_in:
-        error_popup = tkinter.Toplevel(root)
-        error_popup.title("Error.")
-        error_popup.resizable(False,False)
-        error_msg = tkinter.Label(error_popup, text="You must login before you can send a message.")
-        error_msg.grid(row=0, column=0)
-        error_dismissbutton = tkinter.Button(error_popup, text="Ok", command=error_popup.destroy)
-        error_dismissbutton.grid(row=1, column=0)
-        # padding
-        for child in error_popup.winfo_children():
-            child.grid_configure(padx=2, pady=2)
+        makepopup("Error", "You must login before you can send a message.")
         return
     # create popup
     composePopup = tkinter.Toplevel(root)
@@ -180,8 +175,8 @@ def compose():
     for child in composePopup.winfo_children(): 
         child.grid_configure(padx=2, pady=0)
 
-def sendMail(recipient, subject, body):
-    backend.sendMail(recipient=recipient, subject=subject, body=body)
+def sendMail(recipient, subject, body, attachment=None):
+    backend.sendMail(recipient=recipient, subject=subject, body=body, attachment=attachment)
 
 
 def showlogin():
