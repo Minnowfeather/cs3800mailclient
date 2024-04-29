@@ -1,5 +1,5 @@
 import tkinter
-from tkinter import ttk, font
+from tkinter import ttk, font, filedialog
 import mailbackend
 
 # widget - a Text object
@@ -95,7 +95,7 @@ inboxButton.grid(row=0,column=0)
 # trashButton.grid(row=1,column=0)
 
 
-def makepopup(title : str, body : str, dismisstext : str = "Ok"):
+def makepopup(title : str, body : str, dismisstext : str = "Okay"):
     popup = tkinter.Toplevel(root)
     popup.title(title)
     popup.resizable(False,False)
@@ -127,7 +127,16 @@ def login(sourcepopup : tkinter.Toplevel, emailaddress, apikey):
         makepopup("Login success", "Success. You are now logged in")
         accountButton.config(text="Logout", command=logout)
 
+
+
+compose_attachment = None
+
+def loadattachment():
+    global compose_attachment
+    compose_attachment = filedialog.askopenfilename()
 def compose():
+    global compose_attachment
+    compose_attachment = None
     if not logged_in:
         makepopup("Error", "You must login before you can send a message.")
         return
@@ -167,16 +176,24 @@ def compose():
     compose_mailRecipient.config(state=tkinter.NORMAL)
     compose_mailSubject.config(state=tkinter.NORMAL)
     compose_mailBody.config(state=tkinter.NORMAL)
-
-    send_button = ttk.Button(composePopup, text="Send", command=lambda: [sendMail(compose_mailRecipient.get('1.0', tkinter.END), compose_mailSubject.get('1.0', tkinter.END), compose_mailBody.get('1.0', tkinter.END)), composePopup.destroy()])
-    send_button.grid(row=6, column=0, sticky="e")
+    
+    # frame at the bottom so that nothing extends past the body
+    bottombar_frame = tkinter.Frame(composePopup)
+    bottombar_frame.grid(row=6, column=0, sticky="we")
+    # 50/50 split of column 0 and 1
+    bottombar_frame.grid_columnconfigure(0, weight=1)
+    bottombar_frame.grid_columnconfigure(1, weight=1)
+    addattachment_button = ttk.Button(bottombar_frame, text="Add attachment...", command=loadattachment)
+    addattachment_button.grid(row=0, column=0, sticky="w")
+    send_button = ttk.Button(bottombar_frame, text="Send", command=lambda: [sendMail(compose_mailRecipient.get('1.0', tkinter.END), compose_mailSubject.get('1.0', tkinter.END), compose_mailBody.get('1.0', tkinter.END), filename=compose_attachment), composePopup.destroy()])
+    send_button.grid(row=0, column=1, sticky="e")
 
     # pad each child in root 
     for child in composePopup.winfo_children(): 
         child.grid_configure(padx=2, pady=0)
 
-def sendMail(recipient, subject, body, attachment=None):
-    backend.sendMail(recipient=recipient, subject=subject, body=body, attachment=attachment)
+def sendMail(recipient, subject, body, filename=None):
+    backend.sendMail(recipient=recipient, subject=subject, body=body, filename=filename)
 
 
 def showlogin():
@@ -206,8 +223,6 @@ composeButton.grid(column=0, row=2, sticky="s")
 # pad each child in root 
 for child in root.winfo_children(): 
     child.grid_configure(padx=2, pady=0)
-
-showinbox()
 
 # run
 root.mainloop()

@@ -3,6 +3,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
+import os
 
 SMTP_PORT = 587
 
@@ -39,11 +40,7 @@ class mailbackend:
         self._password = None
         self._smtpserver = None
     # sends mail
-    # attachment should be an attachment by created by opening and then reading as binary
-    # ex:
-    # with open(filename, 'rb') as f:
-    #   attachment = f.read()
-    def sendMail(self, recipient : str, subject : str, body : str, attachment : bytes):
+    def sendMail(self, recipient : str, subject : str, body : str, filename : str):
         # Establishing a connection to SMTP server with TLS encryption
         server = smtplib.SMTP(self._smtpserver, SMTP_PORT) # creates connection
         server.starttls() # sets TLS encryption (requires an EHLO after)
@@ -56,11 +53,17 @@ class mailbackend:
         # Message
         msg.attach(MIMEText(body, 'plain'))  # Attaching
 
+        attachment = None
+        if filename is not None:
+            with open(filename, "rb") as file:
+                attachment = file.read()
+                file.close()
+
         if attachment is not None:
             p = MIMEBase('application', 'octet-stream')  # Processing attachment
-            encoders.encode_base64(p)
             p.set_payload(attachment)
-            p.add_header('Content-Disposition', f'attachment; filename={filename}')
+            encoders.encode_base64(p)
+            p.add_header('Content-Disposition', f'attachment; filename={os.path.basename(filename)}')
             msg.attach(p)
         
         server.sendmail(self._email, msg['To'], msg.as_string())
