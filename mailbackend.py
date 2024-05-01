@@ -1,24 +1,34 @@
 import smtplib
+import email
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
+import imaplib
 import os
 
 SMTP_PORT = 587
 
+
+def decode_mime_words(s):
+    return u''.join(
+        word.decode(encoding or 'utf8') if isinstance(word, bytes) else word
+        for word, encoding in email.header.decode_header(s))
+
 class mailbackend:
     def __init__(self):
         self._smtpserver = None
+        self._imapserver = None
         self._email = None
         self._password = None
     
 
     # login with given credentials
     # raise smtplib exception if credentials don't work
-    def login(self, email : str, password):
+    def login(self, email : str, password): #TODO: add more smtp servers
         if(email.endswith("@gmail.com")):
             self._smtpserver = "smtp.gmail.com"
+            self._imapserver = "imap.gmail.com"
         elif(email.endswith("@yahoo.com")):
             self._smtpserver = "smtp.mail.yahoo.com"
         elif(email.endswith("@outlook.com")):
@@ -70,8 +80,32 @@ class mailbackend:
         server.quit()
 
     def getInbox(self):
-        return [{"subject":"test mail", "sender": "mail1@gmail.com", "body":"bongus"},
-                {"subject":"mailtwo", "sender": "mail2@gmail.com", "body":"this is the second email"},
-                {"subject":"this is the third mail", "sender": "mail3@gmail.com", "body":"epic mail time"}
+        # connect to host using SSL
+        imap = imaplib.IMAP4_SSL(host=self._imapserver)
 
-                ]
+        emails = []
+
+        # login to server
+        imap.login(self._email, self._password)
+        imap.select("INBOX")
+        typ, rawdata = imap.search(None, 'ALL')
+        for num in rawdata[0].split():
+            typ, rawdata = imap.fetch(num, '(RFC822)')
+            msg = email.message_from_bytes(rawdata[0][1])
+            tmpMessage = {}
+            tmpMessage["Subject"] = decode_mime_words(msg["Subject"])
+            tmpMessage["Sender"] = msg["From"]
+            tmpMessage["Body"] = "Error retrieving body."
+            if msg.is_multipart():
+                for part in msg.walk():
+                    if part.get_content_type() == "text/plain":
+                        charset = part.get_content_charset()
+                        body = part.get_payload(decode=True).decode(encoding=charset, errors="ignore")
+                        tmpMessage["Body"] = body
+            else:
+                tmpMessage["Body"] = msg.get_payload(decode=True)
+            emails.append(tmpMessage)
+
+        imap.close()
+        imap.logout()
+        return emails

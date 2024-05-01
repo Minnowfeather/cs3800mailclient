@@ -2,6 +2,7 @@ import tkinter
 from tkinter import ttk, font, filedialog
 import mailbackend
 
+import debug_credentials
 # widget - a Text object
 # text - a string of what to insert
 def setText(widget, text):
@@ -57,8 +58,11 @@ mailBody = tkinter.Text(root, font=DEFAULT_FONT)
 mailBody.grid(row=6, column=2)
 setText(mailBody, "")
 
+cached_inbox = []
 def showinbox():
+    global cached_inbox
     if not logged_in:
+        print("fail")
         return
     mailList.delete('0','end')
     
@@ -66,9 +70,10 @@ def showinbox():
     setText(mailSubject, "")
     setText(mailBody, "")
     i = 0
-    for mail in backend.getInbox():
+    cached_inbox = backend.getInbox()
+    for mail in cached_inbox:
         i = i + 1
-        mailList.insert(i, mail["subject"])
+        mailList.insert(i, mail["Subject"])
 def showtrash():
     print("wawa")
 
@@ -78,13 +83,11 @@ def onselect(evt):
     if len(w.curselection()) < 1:
         return
     index = int(w.curselection()[0])
-    tmpSubject = w.get(index)
-    for mail in backend.getInbox():
-        if mail["subject"] == tmpSubject:
-            setText(mailSender, mail["sender"])
-            setText(mailSubject, mail["subject"])
-            setText(mailBody, mail["body"])
-            return
+    selected_mail = cached_inbox[index]
+    setText(mailSender, selected_mail["Sender"])
+    setText(mailSubject, selected_mail["Subject"])
+    setText(mailBody, selected_mail["Body"])
+        
 
 mailList.bind('<<ListboxSelect>>', onselect)
 # if you wanna pass arguments, do this
@@ -224,5 +227,7 @@ composeButton.grid(column=0, row=2, sticky="s")
 for child in root.winfo_children(): 
     child.grid_configure(padx=2, pady=0)
 
+backend.login(debug_credentials.email, debug_credentials.password)
+logged_in = True
 # run
 root.mainloop()
