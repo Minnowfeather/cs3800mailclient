@@ -90,13 +90,6 @@ def onselect(evt):
         
 
 mailList.bind('<<ListboxSelect>>', onselect)
-# if you wanna pass arguments, do this
-# command=lambda: myfunction("args")
-inboxButton = ttk.Button(root, text="Inbox", command=showinbox)
-inboxButton.grid(row=0,column=0)
-# trashButton = ttk.Button(root, text="Trash", command=showtrash)
-# trashButton.grid(row=1,column=0)
-
 
 def makepopup(title : str, body : str, dismisstext : str = "Okay"):
     popup = tkinter.Toplevel(root)
@@ -217,12 +210,17 @@ def showlogin():
     login_sumbit = tkinter.Button(popup, text="Login", command=lambda: login(popup, entry_address.get(), entry_password.get()))
     login_sumbit.grid(row=2, column=0, columnspan=2)
     # popup.mainloop()
-    
 
-accountButton = ttk.Button(root, text="Login", command=showlogin)
+# if you wanna pass arguments, do this
+# command=lambda: myfunction("args")
+inboxButton = ttk.Button(root, text="Inbox", command=showinbox)
+inboxButton.grid(row=0,column=0)
 
 composeButton = ttk.Button(root, text="Compose", command=compose)
-composeButton.grid(column=0, row=2, sticky="s")
+composeButton.grid(row=1, column=0, sticky="s")
+
+accountButton = ttk.Button(root, text="Login", command=showlogin)
+accountButton.grid(sticky="sw")
 # pad each child in root 
 for child in root.winfo_children(): 
     child.grid_configure(padx=2, pady=0)
