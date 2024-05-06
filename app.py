@@ -73,7 +73,10 @@ def showinbox():
     cached_inbox = backend.getInbox()
     for mail in cached_inbox:
         i = i + 1
-        mailList.insert(i, mail["Subject"])
+        subject = mail["Subject"]
+        if not subject:
+            subject = "(No Subject)"
+        mailList.insert(i, subject)
 def showtrash():
     print("wawa")
 
@@ -230,6 +233,61 @@ def delete():
     setText(mailSubject, "")
     setText(mailBody, "")
     
+def reply():
+    selected_index = mailList.curselection()
+    if not selected_index:   
+        makepopup("Error", "Please select an email to reply to.")
+        return
+    
+    selected_mail = cached_inbox[selected_index[0]] 
+    sender_email = selected_mail["Sender"]
+    
+    popup = tkinter.Toplevel(root)
+    popup.title("Reply")
+    popup.resizable(False, False)
+    
+    reply_address = tkinter.Label(popup, textvariable=tkinter.StringVar(value="To:"))
+    reply_address.grid(row=0, column=0, sticky="w")
+
+    # Entry field prefilled with sender's email address
+    reply_address_value = tkinter.StringVar(value=sender_email)
+    reply_address_entry = tkinter.Entry(popup, textvariable=reply_address_value, state='readonly')
+    reply_address_entry.grid(row=1, column=0, sticky="w")
+    
+    reply_body = tkinter.Label(popup, textvariable=tkinter.StringVar(value="Body"))
+    reply_body.grid(row=4, column=0, sticky="w")
+    
+    entry_reply = tkinter.Text(popup, font=DEFAULT_FONT, height=10)
+    entry_reply.grid(row=5, column=0)
+    
+    sendButton = ttk.Button(popup, text="Send", command=lambda: send_reply(popup, sender_email, entry_reply.get("1.0", tkinter.END)))
+    sendButton.grid(row=6,column=0)
+    
+    reply_address.config(state=tkinter.NORMAL)
+    reply_body.config(state=tkinter.NORMAL)
+    entry_reply.config(state=tkinter.NORMAL)
+    
+    
+
+def send_reply(popup, sender_email, reply_text):
+    selected_index = mailList.curselection()
+    if not selected_index:
+        makepopup("Error", "Please select an email to reply to.")
+        return
+    
+    selected_mail = cached_inbox[selected_index[0]]  # Get the selected email
+    
+    # Extract the recipient's email address from the "To" field
+    recipient_email = sender_email
+    
+    # Send the reply using the backend
+    backend.sendMail(recipient=recipient_email, subject="", body=reply_text, filename=None)
+    
+    # Close the reply window after sending the reply
+    makepopup("Success", "Reply Sent.")
+    popup.destroy()
+
+        
 # if you wanna pass arguments, do this
 # command=lambda: myfunction("args")
 inboxButton = ttk.Button(root, text="Inbox", command=showinbox)
@@ -243,6 +301,9 @@ accountButton.grid(sticky="sw")
 
 deleteButton = ttk.Button(root, text="Delete", command=delete)
 deleteButton.grid(row=2, column=0)
+
+replyButton = ttk.Button(root, text="Reply", command=reply)
+replyButton.grid(row=3, column=0)
 
 # pad each child in root 
 for child in root.winfo_children(): 

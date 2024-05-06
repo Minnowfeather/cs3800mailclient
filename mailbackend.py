@@ -109,6 +109,7 @@ class mailbackend:
 
         imap.close()
         imap.logout()
+        emails.reverse()
         return emails
     
     def deleteEmail(self, email_index):
@@ -135,3 +136,35 @@ class mailbackend:
         finally:
             imap.close()
             imap.logout()
+            
+    def replyTo(self, email_index):
+        imap = imaplib.IMAP4_SSL(host=self._imapserver)
+        
+        try:
+            imap.login(self._email, self._password)
+            imap.select("INBOX")
+
+            # Fetch the sequence number of the email based on its index
+            status, messages = imap.search(None, 'ALL')
+            messages = messages[0].split()
+
+            msg_id = messages[email_index - 1]
+
+            # Fetch the email message
+            _, msg_data = imap.fetch(msg_id, "(RFC822)")
+            raw_email = msg_data[0][1]
+            email_message = email.message_from_bytes(raw_email)
+
+            sender = email_message["From"]
+            reply_body = "Dear " + sender + ",\n\n"
+
+            self.sendMail(sender, reply_body, None)
+            
+        except Exception as e:
+            print("Error replying to email:", e)
+
+        finally:
+            imap.close()
+            imap.logout()
+        
+        
