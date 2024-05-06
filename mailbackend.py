@@ -34,6 +34,7 @@ class mailbackend:
             self._smtpserver = "smtp.mail.yahoo.com"
         elif(email.endswith("@outlook.com")):
             self._smtpserver = "smtp-mail.outlook.com"
+            self._imapserver = "outlook.office365.com"
         else:
             raise Exception("Invalid email address.")
 
@@ -94,6 +95,10 @@ class mailbackend:
             typ, rawdata = imap.fetch(num, '(RFC822)')
             msg = email.message_from_bytes(rawdata[0][1])
             tmpMessage = {}
+            _, uid = imap.fetch(num, "UID") # get UID in bytes
+            uid = str(email.message_from_bytes(uid[0])) # get UID as string
+            uid = uid.split("UID ")[1].split(")")[0] # isolate actual UID
+            tmpMessage["UID"] = uid
             tmpMessage["Subject"] = decode_mime_words(msg["Subject"])
             tmpMessage["Sender"] = msg["From"]
             tmpMessage["Body"] = "Error retrieving body."
@@ -112,19 +117,21 @@ class mailbackend:
         emails.reverse()
         return emails
     
-    def deleteEmail(self, email_index):
+    def deleteEmail(self, email_uid):
         imap = imaplib.IMAP4_SSL(host=self._imapserver)
-
         try:
             imap.login(self._email, self._password)
             imap.select("INBOX")
-
+    
             # Fetch the sequence number of the email based on its index
             status, messages = imap.search(None, 'ALL')
             messages = messages[0].split()
-
             for idx, mail in enumerate(messages, start=1):
-                if idx == email_index:
+                _, currentUID = imap.fetch(mail, "UID")
+                currentUID = str(email.message_from_bytes(currentUID[0])) # get UID as string
+                currentUID = currentUID.split("UID ")[1].split(")")[0] # isolate actual UID
+
+                if email_uid == currentUID:
                     _, msg = imap.fetch(mail, "(RFC822)")
                     imap.store(mail, "+FLAGS", "\\Deleted")
                     imap.expunge()

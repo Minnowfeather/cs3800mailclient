@@ -2,7 +2,7 @@ import tkinter
 from tkinter import ttk, font, filedialog
 import mailbackend
 
-#import debug_credentials
+# import debug_credentials
 # widget - a Text object
 # text - a string of what to insert
 def setText(widget, text):
@@ -44,7 +44,7 @@ label_subject = tkinter.Label(root, textvariable=tkinter.StringVar(value="Subjec
 label_subject.grid(row=2, column=2, sticky="w")
 # actual subject box
 frame_mailsubject = tkinter.Frame(root, height=20)
-frame_mailsubject.grid(row=4, column=2, sticky="we")
+frame_mailsubject.grid(row=3, column=2, sticky="we")
 frame_mailsubject.grid_propagate(False)
 mailSubject = tkinter.Text(frame_mailsubject, font=DEFAULT_FONT)
 mailSubject.grid(row=0, column=0)
@@ -52,10 +52,10 @@ setText(mailSubject, "")
 
 # body label
 label_body = tkinter.Label(root, textvariable=tkinter.StringVar(value="Body"))
-label_body.grid(row=5, column=2, sticky="w")
+label_body.grid(row=4, column=2, sticky="w")
 # actual body box
 mailBody = tkinter.Text(root, font=DEFAULT_FONT)
-mailBody.grid(row=6, column=2)
+mailBody.grid(row=5, column=2)
 setText(mailBody, "")
 
 cached_inbox = []
@@ -223,7 +223,7 @@ def delete():
     index = int(selected_index[0])
     selected_mail = cached_inbox[index]
     
-    backend.deleteEmail(index)  # Delete the email based on its index in cached_inbox
+    backend.deleteEmail(selected_mail["UID"])  # Delete the email based on its UID
     
     cached_inbox.pop(index)
     mailList.delete(index)
@@ -309,7 +309,7 @@ replyButton.grid(row=3, column=0)
 for child in root.winfo_children(): 
     child.grid_configure(padx=2, pady=0)
 
-#backend.login(debug_credentials.email, debug_credentials.password)
-#logged_in = True
+# backend.login(debug_credentials.email, debug_credentials.password)
+# logged_in = True
 # run
 root.mainloop()

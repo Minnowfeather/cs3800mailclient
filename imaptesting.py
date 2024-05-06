@@ -8,7 +8,7 @@ def decode_mime_words(s):
         for word, encoding in email.header.decode_header(s))
 
 
-imap_host = 'imap.gmail.com'
+imap_host = 'outlook.office365.com'
 imap_user = debug_credentials.email
 imap_pass = debug_credentials.password
 
@@ -21,10 +21,15 @@ imap.select("INBOX")
 typ, rawdata = imap.search(None, 'ALL')
 for num in rawdata[0].split():
     typ, rawdata = imap.fetch(num, '(RFC822)')
-    
+    _, uid = imap.fetch(num, "UID")
+    for i in uid: 
+        tmpUID = email.message_from_bytes(i)
+        print(str(tmpUID).split("UID ")[1].split(")")[0]) # holy split
+        
+    print("new")
     msg = email.message_from_bytes(rawdata[0][1])
     mysubj = decode_mime_words(msg["Subject"])
-    print(mysubj)
+    # print(mysubj)
     # decoded_header, charset = email.header.decode_header()
     if msg.is_multipart():
         for part in msg.walk():
