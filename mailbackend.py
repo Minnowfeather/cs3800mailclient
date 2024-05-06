@@ -1,3 +1,4 @@
+from email.header import decode_header
 import smtplib
 import email
 from email.mime.multipart import MIMEMultipart
@@ -104,8 +105,33 @@ class mailbackend:
                         tmpMessage["Body"] = body
             else:
                 tmpMessage["Body"] = msg.get_payload(decode=True)
-            emails.append(tmpMessage)
+            emails.append(tmpMessage)    
 
         imap.close()
         imap.logout()
         return emails
+    
+    def deleteEmail(self, email_index):
+        imap = imaplib.IMAP4_SSL(host=self._imapserver)
+
+        try:
+            imap.login(self._email, self._password)
+            imap.select("INBOX")
+
+            # Fetch the sequence number of the email based on its index
+            status, messages = imap.search(None, 'ALL')
+            messages = messages[0].split()
+
+            for idx, mail in enumerate(messages, start=1):
+                if idx == email_index:
+                    _, msg = imap.fetch(mail, "(RFC822)")
+                    imap.store(mail, "+FLAGS", "\\Deleted")
+                    imap.expunge()
+                    break
+
+        except Exception as e:
+            print("Error deleting email:", e)
+
+        finally:
+            imap.close()
+            imap.logout()

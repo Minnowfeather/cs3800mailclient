@@ -2,7 +2,7 @@ import tkinter
 from tkinter import ttk, font, filedialog
 import mailbackend
 
-import debug_credentials
+#import debug_credentials
 # widget - a Text object
 # text - a string of what to insert
 def setText(widget, text):
@@ -210,7 +210,26 @@ def showlogin():
     login_sumbit = tkinter.Button(popup, text="Login", command=lambda: login(popup, entry_address.get(), entry_password.get()))
     login_sumbit.grid(row=2, column=0, columnspan=2)
     # popup.mainloop()
+    
+def delete():
+    selected_index = mailList.curselection()
+    if not selected_index:
+        makepopup("Error", "Please select an email to delete.")
+        return
+    
+    index = int(selected_index[0])
+    selected_mail = cached_inbox[index]
+    
+    backend.deleteEmail(index)  # Delete the email based on its index in cached_inbox
+    
+    cached_inbox.pop(index)
+    mailList.delete(index)
+    makepopup("Success", "Email deleted successfully.")
 
+    setText(mailSender, "")
+    setText(mailSubject, "")
+    setText(mailBody, "")
+    
 # if you wanna pass arguments, do this
 # command=lambda: myfunction("args")
 inboxButton = ttk.Button(root, text="Inbox", command=showinbox)
@@ -221,11 +240,15 @@ composeButton.grid(row=1, column=0, sticky="s")
 
 accountButton = ttk.Button(root, text="Login", command=showlogin)
 accountButton.grid(sticky="sw")
+
+deleteButton = ttk.Button(root, text="Delete", command=delete)
+deleteButton.grid(row=2, column=0)
+
 # pad each child in root 
 for child in root.winfo_children(): 
     child.grid_configure(padx=2, pady=0)
 
-backend.login(debug_credentials.email, debug_credentials.password)
-logged_in = True
+#backend.login(debug_credentials.email, debug_credentials.password)
+#logged_in = True
 # run
 root.mainloop()
