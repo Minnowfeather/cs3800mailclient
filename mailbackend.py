@@ -81,41 +81,113 @@ class mailbackend:
         server.sendmail(self._email, msg['To'], msg.as_string())
         server.quit()
 
-    def getInbox(self):
-        # connect to host using SSL
-        imap = imaplib.IMAP4_SSL(host=self._imapserver)
-
+    def getInbox(self, batch_size=100):
         emails = []
 
-        # login to server
-        imap.login(self._email, self._password)
-        imap.select("INBOX")
-        typ, rawdata = imap.search(None, 'ALL')
-        for num in rawdata[0].split():
-            typ, rawdata = imap.fetch(num, '(RFC822)')
-            msg = email.message_from_bytes(rawdata[0][1])
-            tmpMessage = {}
-            _, uid = imap.fetch(num, "UID") # get UID in bytes
-            uid = str(email.message_from_bytes(uid[0])) # get UID as string
-            uid = uid.split("UID ")[1].split(")")[0] # isolate actual UID
-            tmpMessage["UID"] = uid
-            tmpMessage["Subject"] = decode_mime_words(msg["Subject"])
-            tmpMessage["Sender"] = msg["From"]
-            tmpMessage["Body"] = "Error retrieving body."
-            if msg.is_multipart():
-                for part in msg.walk():
-                    if part.get_content_type() == "text/plain":
-                        charset = part.get_content_charset()
-                        body = part.get_payload(decode=True).decode(encoding=charset, errors="ignore")
-                        tmpMessage["Body"] = body
-            else:
-                tmpMessage["Body"] = msg.get_payload(decode=True)
-            emails.append(tmpMessage)    
+        # Connect to IMAP server
+        with imaplib.IMAP4_SSL(self._imapserver) as imap:
+            # Login to server
+            imap.login(self._email, self._password)
 
-        imap.close()
-        imap.logout()
+            # Select INBOX
+            imap.select("INBOX")
+
+            # Search for all emails
+            _, data = imap.search(None, 'ALL')
+
+            # Fetch UIDs for each email
+            _, uid_data = imap.uid('search', None, 'ALL')
+            uids = uid_data[0].split()
+
+            # Process emails in batches
+            for i in range(0, len(uids), batch_size):
+                batch_uids = uids[i:i+batch_size]
+
+                # Fetch messages for the current batch
+                _, msg_data = imap.uid('fetch', ','.join(uid.decode() for uid in batch_uids), '(RFC822)')
+                for response_part in msg_data:
+                    if isinstance(response_part, tuple):
+                        raw_email = response_part[1]
+                        msg = email.message_from_bytes(raw_email)
+                        
+                        tmpMessage = {}
+                        tmpMessage["UID"] = msg.get("Message-ID", "")  # Use Message-ID as UID if available
+
+                        # Fetch subject and sender
+                        tmpMessage["Subject"] = decode_mime_words(msg.get("Subject", ""))
+                        tmpMessage["Sender"] = msg.get("From", "")
+
+                        # Fetch body (if available)
+                        body = ""
+                        if msg.is_multipart():
+                            for part in msg.walk():
+                                if part.get_content_type() == "text/plain":
+                                    charset = part.get_content_charset()
+                                    body = part.get_payload(decode=True).decode(encoding=charset, errors="ignore")
+                                    break
+                        else:
+                            body = msg.get_payload(decode=True)
+                        tmpMessage["Body"] = body.strip()
+
+                        emails.append(tmpMessage)
+
+        # Reverse the order of emails (if needed)
         emails.reverse()
         return emails
+    
+    def getSentInbox(self, batch_size=30):
+        sent_emails = []
+
+        # Connect to IMAP server
+        with imaplib.IMAP4_SSL(self._imapserver) as imap:
+            # Login to server
+            imap.login(self._email, self._password)
+
+            # Select the "Sent" mailbox
+            imap.select('"[Gmail]/Sent Mail"')  # Modify this to match your mailbox name
+
+            # Search for emails sent by the user
+            _, data = imap.search(None, 'FROM', self._email)
+
+            # Fetch UIDs for each email
+            _, uid_data = imap.uid('search', None, 'FROM', self._email)
+            uids = uid_data[0].split()
+
+            # Process emails in batches
+            for i in range(0, len(uids), batch_size):
+                batch_uids = uids[i:i+batch_size]
+
+                # Fetch messages for the current batch
+                _, msg_data = imap.uid('fetch', ','.join(uid.decode() for uid in batch_uids), '(RFC822)')
+                for response_part in msg_data:
+                    if isinstance(response_part, tuple):
+                        raw_email = response_part[1]
+                        msg = email.message_from_bytes(raw_email)
+
+                        tmpMessage = {}
+                        tmpMessage["UID"] = msg.get("Message-ID", "")  # Use Message-ID as UID if available
+
+                        # Fetch subject and sender
+                        tmpMessage["Subject"] = decode_mime_words(msg.get("Subject", ""))
+                        tmpMessage["Sender"] = msg.get("From", "")
+
+                        # Fetch body (if available)
+                        body = ""
+                        if msg.is_multipart():
+                            for part in msg.walk():
+                                if part.get_content_type() == "text/plain":
+                                    charset = part.get_content_charset()
+                                    body = part.get_payload(decode=True).decode(encoding=charset, errors="ignore")
+                                    break
+                        else:
+                            body = msg.get_payload(decode=True)
+                        tmpMessage["Body"] = body.strip()
+
+                        sent_emails.append(tmpMessage)
+
+        # Reverse the order of emails (if needed)
+        sent_emails.reverse()
+        return sent_emails
     
     def deleteEmail(self, email_uid):
         imap = imaplib.IMAP4_SSL(host=self._imapserver)
