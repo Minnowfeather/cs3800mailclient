@@ -194,9 +194,6 @@ def logout():
     global image
     backend.logout()
     logged_in = False
-    setText(mailSender, "")
-    setText(mailSubject, "")
-    setText(mailBody, "")
     mailList.delete(0, tkinter.END)
     showFrame()
     messagebox.showinfo("Logout success", "Succesfully logged out.")
