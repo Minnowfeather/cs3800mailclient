@@ -194,26 +194,25 @@ class mailbackend:
         try:
             imap.login(self._email, self._password)
             imap.select("INBOX")
-    
-            # Fetch the sequence number of the email based on its index
-            status, messages = imap.search(None, 'ALL')
-            messages = messages[0].split()
-            for idx, mail in enumerate(messages, start=1):
-                _, currentUID = imap.fetch(mail, "UID")
-                currentUID = str(email.message_from_bytes(currentUID[0])) # get UID as string
-                currentUID = currentUID.split("UID ")[1].split(")")[0] # isolate actual UID
-
-                if email_uid == currentUID:
-                    _, msg = imap.fetch(mail, "(RFC822)")
+            
+            # Search directly for the UID
+            status, messages = imap.search(None, f'UID {email_uid}')
+            if status == 'OK' and messages[0]:
+                for mail in messages[0].split():
                     imap.store(mail, "+FLAGS", "\\Deleted")
-                    imap.expunge()
-                    break
+                imap.expunge()
+            else:
+                print(f"Email UID {email_uid} not found")
 
+        except imaplib.IMAP4.error as e:
+            print(f"IMAP error: {e}")
         except Exception as e:
-            print("Error deleting email:", e)
-
+            print(f"General error: {e}")
         finally:
-            imap.close()
+            try:
+                imap.close()
+            except:
+                pass
             imap.logout()
             
     def replyTo(self, email_index):
